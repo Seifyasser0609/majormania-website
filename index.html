@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MAJORMANIA - Premium Pens Store</title>
+
+    <!-- Firebase Compat SDKs (CDN) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <!-- Your Firebase config (must be after SDKs) -->
+    <script src="firebase-config.js"></script>
+
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://js.stripe.com/v3/"></script>
+    <script src="https://www.paypal.com/sdk/js?client-id=test&currency=USD"></script>
+</head>
+<body>
+    <!-- Particle Background Canvas -->
+    <canvas id="particle-canvas"></canvas>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <h1 class="logo">MAJORMANIA</h1>
+            <nav class="nav">
+                <ul class="nav-links">
+                    <li><a href="#home" class="nav-link active">Home</a></li>
+                    <li><a href="#products" class="nav-link">Products</a></li>
+                    <li><a href="#about" class="nav-link">About</a></li>
+                    <li><a href="#contact" class="nav-link">Contact</a></li>
+                </ul>
+                <button class="cart-btn" id="cartBtn">
+                    🛒 Cart <span class="cart-count" id="cartCount">0</span>
+                </button>
+            </nav>
+            <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="container">
+            <div class="hero-content">
+                <div class="glowing-card">
+                    <div class="glow"></div>
+                    <div class="content">
+                        <h2>Premium Pens Collection</h2>
+                        <div class="typing-container">
+                            <span class="typing-text" id="typingText"></span>
+                            <span class="cursor">|</span>
+                        </div>
+                        <button class="cta-btn" onclick="scrollToProducts()">Shop Now</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Products Section -->
+    <section class="products-section" id="products">
+        <div class="container">
+            <h3 class="section-title">Featured Products</h3>
+            <div class="carousel-container">
+                <div class="carousel" id="productCarousel">
+                    <!-- Products will be dynamically inserted here -->
+                </div>
+                <button class="carousel-btn prev" id="prevBtn">‹</button>
+                <button class="carousel-btn next" id="nextBtn">›</button>
+            </div>
+            <div class="carousel-indicators" id="carouselIndicators"></div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="about-section" id="about">
+        <div class="container">
+            <h3 class="section-title">About MAJORMANIA</h3>
+            <div class="about-content">
+                <div class="about-text">
+                    <p>We bring you the finest writing instruments collection with premium quality and style. Our mission is to make your writing experience amazing.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="contact-section" id="contact">
+        <div class="container">
+            <h3 class="section-title">Contact Us</h3>
+            <div class="contact-content">
+                <p>Email: hello@majormania.com</p>
+                <p>Phone: +201550469016</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Cart Modal -->
+    <div class="modal" id="cartModal">
+        <div class="modal-content">
+            <span class="close" id="closeModal">&times;</span>
+            <h3>Your Shopping Cart</h3>
+            <div class="cart-items" id="cartItems"></div>
+            <div class="cart-total">
+                <strong>Total: <span id="cartTotal">0.00</span> EGP</strong>
+            </div>
+            <div class="payment-buttons">
+                <button class="payment-btn cod" id="codBtn">💵 Cash on Delivery</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- COD Modal -->
+    <div class="modal" id="codModal">
+        <div class="modal-content">
+            <span class="close" id="closeCodModal">&times;</span>
+            <h3>Cash on Delivery Order</h3>
+            <form id="codForm">
+                <div class="form-group">
+                    <label for="customerName">Full Name *</label>
+                    <input type="text" id="customerName" placeholder="Enter your full name" required>
+                </div>
+                <div class="form-group">
+                    <label for="customerPhone">Phone Number *</label>
+                    <input type="tel" id="customerPhone" placeholder="Enter your phone number" required>
+                </div>
+                <div class="form-group">
+                    <label for="customerEmail">Email Address</label>
+                    <input type="email" id="customerEmail" placeholder="Enter your email (optional)">
+                </div>
+                <div class="form-group">
+                    <label for="customerAddress">Delivery Address *</label>
+                    <textarea id="customerAddress" placeholder="Enter your complete delivery address" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="customerCity">City *</label>
+                    <input type="text" id="customerCity" placeholder="Enter your city" required>
+                </div>
+                <div class="form-group">
+                    <label for="orderNotes">Order Notes</label>
+                    <textarea id="orderNotes" placeholder="Any special instructions for delivery" rows="2"></textarea>
+                </div>
+
+                <div class="order-summary">
+                    <h4>Order Summary</h4>
+                    <div id="orderSummary"></div>
+                    <div class="order-total">
+                        <strong>Total: <span id="orderTotal">0.00</span> EGP</strong>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-cancel" onclick="closeCodModal()">Cancel</button>
+                    <button type="submit" class="payment-btn cod" id="confirmOrderBtn">✅ Confirm COD Order</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div class="modal" id="successModal">
+        <div class="modal-content">
+            <span class="close" id="closeSuccessModal">&times;</span>
+            <div class="success-content">
+                <div class="success-icon">🎉</div>
+                <h3>Order Placed Successfully!</h3>
+                <p>Thank you for your order. We will contact you shortly to confirm delivery.</p>
+                <div class="order-details">
+                    <p><strong>Order ID:</strong> <span id="orderId">-</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts: particles first (visual), then main (logic) -->
+    <script src="particles.js"></script>
+    <script src="main.js"></script>
+
+    <!-- initialize store after DOM loaded (main.js also sets it but this guarantees) -->
+    <script>
+        // ensure firebase is ready and DOM is loaded
+        document.addEventListener('DOMContentLoaded', function () {
+            if (typeof initStore === 'function') {
+                initStore();
+            }
+        });
+    </script>
+</body>
+</html>
